@@ -1,4 +1,4 @@
-const BASE_API_URL = import.meta.env.VITE_API_URL || "https://codemesherbackend.onrender.com";
+const BASE_API_URL = import.meta.env.VITE_API_BACKEND_URL || "https://codemesherbackend.onrender.com";
 
 export interface Message {
     role: "user" | "assistant";

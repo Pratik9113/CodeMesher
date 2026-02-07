@@ -30,7 +30,8 @@ const CodeWiki = () => {
 
         setIsGenerating(true);
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'https://codemesherbackend.onrender.com';
+            const apiUrl = import.meta.env.VITE_API_BACKEND_URL || 'https://codemesherbackend.onrender.com';
+            console.log("aopiUrl", apiUrl);
             const response = await fetch(`${apiUrl}/generate-wiki`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

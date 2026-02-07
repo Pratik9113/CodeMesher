@@ -40,7 +40,7 @@ const WikiChat: React.FC<WikiChatProps> = ({ repoUrl, isOpen, onClose, isDarkMod
         setIsLoading(true);
 
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+            const apiUrl = import.meta.env.VITE_API_BACKEND_URL || 'http://127.0.0.1:8000';
             const response = await fetch(`${apiUrl}/wiki-chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

@@ -23,7 +23,7 @@ export function useRepoVision() {
         setFileContent(null);
 
         try {
-            const analysisUrl = import.meta.env.VITE_ANALYSIS_API_URL || "http://localhost:6060";
+            const analysisUrl = import.meta.env.VITE_API_URL || "http://localhost:6060";
             const res = await fetch(`${analysisUrl}/analyze`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -56,7 +56,7 @@ export function useRepoVision() {
         if (!data) return;
 
         try {
-            const apiUrl = import.meta.env.VITE_ANALYSIS_API_URL || import.meta.env.VITE_API_URL || "http://localhost:6060";
+            const apiUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL || "http://localhost:6060";
             const encodedPath = encodeURIComponent(file.path);
             const res = await fetch(
                 `${apiUrl}/file/${data.repoMeta.owner}/${data.repoMeta.repo}?branch=${data.repoMeta.branchTried}&path=${encodedPath}`
