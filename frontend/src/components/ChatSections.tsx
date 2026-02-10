@@ -75,7 +75,12 @@ export default function CodeMesher({
 
     try {
       let endpoint = "";
-      let body: any = { root_path: root?.path, file_path: activeFile };
+      // include file_content in the body so backend doesn't have to fetch from github if we already have it
+      let body: any = {
+        root_path: root?.path,
+        file_path: activeFile,
+        file_content: code
+      };
 
       switch (thread) {
         case "scan-workspace": endpoint = "/analyze-scan"; break;

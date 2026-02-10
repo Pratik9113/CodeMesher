@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
     Code,
     X,
     Folder,
-    FolderOpen
+    FolderOpen,
+    Upload
 } from 'lucide-react';
 import type { TreeNode } from '../../types/display';
 import FolderTree from '../ui/FolderTree';
@@ -12,13 +13,15 @@ interface DisplaySidebarProps {
     width: number;
     collapsed: boolean;
     repoInput: string;
-    root?: { path: string; children: TreeNode[] };
+    root?: { path: string; children: TreeNode[]; isLocal?: boolean };
     activeFile?: string;
     onCollapsedChange: (collapsed: boolean) => void;
     onRepoInputChange: (value: string) => void;
     onLoadRepo: () => void;
     onToggleNode: (node: TreeNode) => void;
     onOpenFile: (path: string) => void;
+    onLocalFolderUpload: (files: FileList) => void;
+    isUploadingLocal?: boolean;
 }
 
 const DisplaySidebar: React.FC<DisplaySidebarProps> = ({
@@ -31,8 +34,18 @@ const DisplaySidebar: React.FC<DisplaySidebarProps> = ({
     onRepoInputChange,
     onLoadRepo,
     onToggleNode,
-    onOpenFile
+    onOpenFile,
+    onLocalFolderUpload,
+    isUploadingLocal
 }) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            onLocalFolderUpload(e.target.files);
+        }
+    };
+
     return (
         <aside style={{ width: collapsed ? 50 : width }} className="flex flex-col border-r border-gray-700 bg-gray-900 transition-all duration-300">
             <div className="h-12 flex items-center px-3 border-b border-gray-700">
@@ -62,21 +75,42 @@ const DisplaySidebar: React.FC<DisplaySidebarProps> = ({
 
             {!collapsed && (
                 <>
-                    <div className="p-3">
+                    <div className="p-3 space-y-2">
                         <button
                             onClick={onLoadRepo}
-                            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-lg shadow-blue-900/20"
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-lg shadow-blue-900/20"
                         >
                             <FolderOpen className="w-4 h-4" />
-                            Load GitHub Repo
+                            Load GitHub
                         </button>
+
+                        <button
+                            disabled={isUploadingLocal}
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-medium bg-gray-800 hover:bg-gray-700 text-white transition-colors border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isUploadingLocal ? (
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <Upload className="w-4 h-4 text-purple-400" />
+                            )}
+                            {isUploadingLocal ? 'Processing...' : 'Upload Local'}
+                        </button>
+
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            {...({ webkitdirectory: "", directory: "", multiple: true } as any)}
+                            onChange={handleFolderSelect}
+                        />
                     </div>
 
                     <div className="flex-1 overflow-auto px-3 py-2 custom-scrollbar">
                         {root ? (
                             <div className="space-y-1">
                                 <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 px-2 truncate" title={root.path}>
-                                    {root.path}
+                                    {root.isLocal ? 'Local: ' : ''}{root.path}
                                 </div>
                                 <FolderTree
                                     nodes={root.children}

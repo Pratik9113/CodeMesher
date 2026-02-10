@@ -5,7 +5,6 @@ import DisplaySidebar from './components/display/DisplaySidebar'
 import ResizeDivider from './components/ui/ResizeDivider'
 import type { TreeNode } from './types/display'
 import { octokit, fetchRepoContent } from './utils/github'
-
 import Navbar from './components/layout/Navbar'
 
 function Display() {
@@ -14,13 +13,17 @@ function Display() {
     "// Welcome to your editor\nfunction greet(name: string) {\n  return `Hello, ${name}!`;\n}\n\nconsole.log(greet('world'));"
   )
   const [activeFile, setActiveFile] = useState<string | undefined>(undefined)
-  const [root, setRoot] = useState<{ path: string; children: TreeNode[] } | undefined>(undefined)
+  const [root, setRoot] = useState<{ path: string; children: TreeNode[]; isLocal?: boolean } | undefined>(undefined)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [model, setModel] = useState<"auto" | "openai" | "ollama">("auto")
   const [provider, setProvider] = useState<"auto" | "openai" | "ollama">("auto")
   const [mode, setMode] = useState<string>("edit")
   const [originalForDiff, setOriginalForDiff] = useState<string>("")
   const [proposedForDiff, setProposedForDiff] = useState<string>("")
+
+  // Store local files content in a record: path -> content
+  const [localFiles, setLocalFiles] = useState<Record<string, string>>({})
+  const [isUploadingLocal, setIsUploadingLocal] = useState(false)
 
   // Resize states
   const [sidebarWidth, setSidebarWidth] = useState(250)
@@ -33,9 +36,12 @@ function Display() {
     if (!node.isDir) return
     if (!node.expanded) {
       if (!root) return
-      const [owner, repo] = root.path.split('/')
-      const children = await fetchRepoContent(owner, repo, node.path)
-      node.children = children
+      // GitHub repos still fetch children lazily
+      if (!root.isLocal) {
+        const [owner, repo] = root.path.split('/')
+        const children = await fetchRepoContent(owner, repo, node.path)
+        node.children = children
+      }
     }
     node.expanded = !node.expanded
     setRoot(r => r ? ({ ...r, children: [...r.children] }) : r)
@@ -43,6 +49,16 @@ function Display() {
 
   const openFileFromTree = async (filePath: string) => {
     if (!root) return
+
+    if (root.isLocal) {
+      const content = localFiles[filePath];
+      if (content !== undefined) {
+        setActiveFile(filePath);
+        setCode(content);
+      }
+      return;
+    }
+
     const [owner, repo] = root.path.split('/')
     try {
       const res = await octokit.rest.repos.getContent({ owner, repo, path: filePath })
@@ -60,9 +76,91 @@ function Display() {
     if (!repoInput.includes('/')) return alert('Invalid format: owner/repo')
     const [owner, repo] = repoInput.split('/')
     const tree = await fetchRepoContent(owner, repo)
-    setRoot({ path: `${owner}/${repo}`, children: tree })
+    setRoot({ path: `${owner}/${repo}`, children: tree, isLocal: false })
     setActiveFile(undefined)
+    setLocalFiles({})
   }
+
+  const handleLocalFolderUpload = async (files: FileList) => {
+    if (files.length === 0) return;
+    setIsUploadingLocal(true);
+    console.log("Starting local folder processing for", files.length, "files");
+
+    const fileMap: Record<string, string> = {};
+    const tree: TreeNode[] = [];
+
+    const addToTree = (pathParts: string[], isDir: boolean, fullPath: string) => {
+      let currentLevel = tree;
+      let currentPath = "";
+
+      for (let i = 0; i < pathParts.length; i++) {
+        const part = pathParts[i];
+        currentPath = currentPath ? `${currentPath}/${part}` : part;
+        const isLast = i === pathParts.length - 1;
+
+        let node = currentLevel.find(n => n.name === part);
+        if (!node) {
+          node = {
+            name: part,
+            path: currentPath,
+            isDir: !isLast || isDir,
+            children: [],
+            expanded: false
+          };
+          currentLevel.push(node);
+        }
+        currentLevel = node.children || [];
+      }
+    };
+
+    const filePromises = Array.from(files).map(file => {
+      // Skip likely binaries and very large files
+      const isLikelyBinary = /\.(jpg|jpeg|png|gif|zip|exe|pdf|node|dll|so|dylib|bin|tar|gz|7z|woff|woff2|ttf|eot|ico)$/i.test(file.name);
+
+      return new Promise<void>((resolve) => {
+        if (isLikelyBinary || file.size > 2 * 1024 * 1024) { // 2MB limit for local files
+          addToTree(file.webkitRelativePath.split('/'), false, file.webkitRelativePath);
+          resolve();
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const content = e.target?.result as string;
+          const path = file.webkitRelativePath;
+          fileMap[path] = content;
+          addToTree(path.split('/'), false, path);
+          resolve();
+        };
+        reader.onerror = () => {
+          console.error("Error reading file:", file.name);
+          resolve();
+        };
+        reader.readAsText(file);
+      });
+    });
+
+    try {
+      await Promise.all(filePromises);
+
+      const rootFolderName = files[0]?.webkitRelativePath.split('/')[0] || "Local Project";
+
+      if (tree.length === 1 && tree[0].name === rootFolderName && tree[0].isDir) {
+        setRoot({ path: rootFolderName, children: tree[0].children || [], isLocal: true });
+      } else {
+        setRoot({ path: rootFolderName, children: tree, isLocal: true });
+      }
+
+      setLocalFiles(fileMap);
+      setActiveFile(undefined);
+    } catch (err) {
+      console.error("Local upload failed:", err);
+      alert("Failed to process local folder.");
+    } finally {
+      setIsUploadingLocal(false);
+      console.log("Finished uploading local folder.");
+    }
+  };
 
   // ---------------- Resize Handlers ----------------
   const handleMouseMove = (e: MouseEvent) => {
@@ -98,7 +196,6 @@ function Display() {
     <div className="flex flex-col h-screen bg-[#0d1117]">
       <Navbar />
       <div className="flex flex-1 overflow-hidden text-gray-300 font-sans selection:bg-blue-500/30">
-        {/* Sidebar Component */}
         <DisplaySidebar
           width={sidebarWidth}
           collapsed={sidebarCollapsed}
@@ -110,17 +207,23 @@ function Display() {
           onLoadRepo={loadRepo}
           onToggleNode={toggleNode}
           onOpenFile={openFileFromTree}
+          onLocalFolderUpload={handleLocalFolderUpload}
+          isUploadingLocal={isUploadingLocal}
         />
 
-        {/* Resize Divider */}
         <ResizeDivider
           onMouseDown={() => { isResizingSidebar.current = true }}
           orientation="vertical"
         />
 
-        {/* Main Editor Section */}
         <main className="flex-1 flex flex-col min-w-0 bg-gray-900 shadow-2xl relative z-10">
-          <div className="flex-1 p-4 overflow-hidden">
+          <div className="flex-1 p-4 overflow-hidden relative">
+            {isUploadingLocal && (
+              <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex flex-col items-center justify-center space-y-4">
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-white font-medium">Processing local folder...</p>
+              </div>
+            )}
             <CodeEditor
               initialCode={code}
               onChange={(newCode) => setCode(newCode)}
@@ -130,13 +233,11 @@ function Display() {
           </div>
         </main>
 
-        {/* AI Resize Divider */}
         <ResizeDivider
           onMouseDown={() => { isResizingAI.current = true }}
           orientation="vertical"
         />
 
-        {/* AI Assistant Panel */}
         <aside style={{ width: aiWidth }} className="flex flex-col bg-[#161b22] border-l border-gray-700 h-full overflow-hidden">
           <AIAssistant
             root={root}
