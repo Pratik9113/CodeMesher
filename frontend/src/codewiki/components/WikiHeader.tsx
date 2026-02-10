@@ -56,7 +56,7 @@ const WikiHeader: React.FC<WikiHeaderProps> = ({
                 </div>
 
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2 hidden lg:block"></div>
-                <h1 className="text-lg font-bold hidden sm:block">Code Wiki</h1>
+                <h1 className="text-lg font-bold hidden sm:block">Repo Wiki</h1>
             </div>
 
             <div className="flex-1 lg:max-w-2xl">

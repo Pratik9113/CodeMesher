@@ -109,7 +109,7 @@ const CodeWiki = () => {
                             <Sparkles className="w-8 h-8 text-blue-400" />
                         </div>
                         <h1 className="text-3xl font-bold mb-3 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                            Code Wiki Generator
+                            Repo Wiki Generator
                         </h1>
                         <p className="text-gray-400 mb-8 text-sm">
                             Enter a public GitHub repository URL to automatically generate standard documentation and SDK guides using AI.
