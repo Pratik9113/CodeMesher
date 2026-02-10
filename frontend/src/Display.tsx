@@ -6,6 +6,8 @@ import ResizeDivider from './components/ui/ResizeDivider'
 import type { TreeNode } from './types/display'
 import { octokit, fetchRepoContent } from './utils/github'
 
+import Navbar from './components/layout/Navbar'
+
 function Display() {
   const [repoInput, setRepoInput] = useState('Pratik9113/government_scheme')
   const [code, setCode] = useState<string>(
@@ -93,58 +95,61 @@ function Display() {
   }, [])
 
   return (
-    <div className="flex h-screen bg-[#0d1117] text-gray-300 font-sans selection:bg-blue-500/30">
-      {/* Sidebar Component */}
-      <DisplaySidebar
-        width={sidebarWidth}
-        collapsed={sidebarCollapsed}
-        repoInput={repoInput}
-        root={root}
-        activeFile={activeFile}
-        onCollapsedChange={setSidebarCollapsed}
-        onRepoInputChange={setRepoInput}
-        onLoadRepo={loadRepo}
-        onToggleNode={toggleNode}
-        onOpenFile={openFileFromTree}
-      />
-
-      {/* Resize Divider */}
-      <ResizeDivider
-        onMouseDown={() => { isResizingSidebar.current = true }}
-        orientation="vertical"
-      />
-
-      {/* Main Editor Section */}
-      <main className="flex-1 flex flex-col min-w-0 bg-gray-900 shadow-2xl relative z-10">
-        <div className="flex-1 p-4 overflow-hidden">
-          <CodeEditor
-            initialCode={code}
-            onChange={(newCode) => setCode(newCode)}
-            fileName={activeFile}
-            onClose={() => setActiveFile(undefined)}
-          />
-        </div>
-      </main>
-
-      {/* AI Resize Divider */}
-      <ResizeDivider
-        onMouseDown={() => { isResizingAI.current = true }}
-        orientation="vertical"
-      />
-
-      {/* AI Assistant Panel */}
-      <aside style={{ width: aiWidth }} className="flex flex-col bg-[#161b22] border-l border-gray-700 h-full overflow-hidden">
-        <AIAssistant
+    <div className="flex flex-col h-screen bg-[#0d1117]">
+      <Navbar />
+      <div className="flex flex-1 overflow-hidden text-gray-300 font-sans selection:bg-blue-500/30">
+        {/* Sidebar Component */}
+        <DisplaySidebar
+          width={sidebarWidth}
+          collapsed={sidebarCollapsed}
+          repoInput={repoInput}
           root={root}
           activeFile={activeFile}
-          model={model}
-          provider={provider}
-          code={code}
-          setOriginalForDiff={setOriginalForDiff}
-          setProposedForDiff={setProposedForDiff}
-          setMode={setMode}
+          onCollapsedChange={setSidebarCollapsed}
+          onRepoInputChange={setRepoInput}
+          onLoadRepo={loadRepo}
+          onToggleNode={toggleNode}
+          onOpenFile={openFileFromTree}
         />
-      </aside>
+
+        {/* Resize Divider */}
+        <ResizeDivider
+          onMouseDown={() => { isResizingSidebar.current = true }}
+          orientation="vertical"
+        />
+
+        {/* Main Editor Section */}
+        <main className="flex-1 flex flex-col min-w-0 bg-gray-900 shadow-2xl relative z-10">
+          <div className="flex-1 p-4 overflow-hidden">
+            <CodeEditor
+              initialCode={code}
+              onChange={(newCode) => setCode(newCode)}
+              fileName={activeFile}
+              onClose={() => setActiveFile(undefined)}
+            />
+          </div>
+        </main>
+
+        {/* AI Resize Divider */}
+        <ResizeDivider
+          onMouseDown={() => { isResizingAI.current = true }}
+          orientation="vertical"
+        />
+
+        {/* AI Assistant Panel */}
+        <aside style={{ width: aiWidth }} className="flex flex-col bg-[#161b22] border-l border-gray-700 h-full overflow-hidden">
+          <AIAssistant
+            root={root}
+            activeFile={activeFile}
+            model={model}
+            provider={provider}
+            code={code}
+            setOriginalForDiff={setOriginalForDiff}
+            setProposedForDiff={setProposedForDiff}
+            setMode={setMode}
+          />
+        </aside>
+      </div>
     </div>
   )
 }
