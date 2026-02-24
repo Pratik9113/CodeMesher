@@ -1,4 +1,4 @@
-import { GitBranch, Code2, Book } from 'lucide-react';
+import { GitBranch, Code2, Book, Globe } from 'lucide-react';
 import type React from 'react';
 
 export interface PlaygroundItem {
@@ -43,7 +43,7 @@ export const PLAYGROUND_ITEMS: PlaygroundItem[] = [
     {
         id: 'codewiki',
         icon: Book,
-        title: 'CodeWiki',
+        title: 'RepoWiki',
         description: 'Automatically generated documentation for your codebase. Browse through detailed explanations of modules, APIs, and system architecture.',
         features: [
             'Auto-generated module documentation',
@@ -53,5 +53,19 @@ export const PLAYGROUND_ITEMS: PlaygroundItem[] = [
         ],
         to: '/playground/codewiki',
         colorScheme: 'green'
+    },
+    {
+        id: '3dgraph',
+        icon: Globe,
+        title: '3D Architecture Graph',
+        description: 'Visualize your codebase as an interactive 3D globe. Each file is positioned as a "country" with connections showing dependencies.',
+        features: [
+            'Interactive 3D globe visualization',
+            'File dependency mapping and relationships',
+            'Architecture layer detection',
+            'Real-time graph rotation and exploration'
+        ],
+        to: '/playground/3dgraph',
+        colorScheme: 'blue'
     }
 ];

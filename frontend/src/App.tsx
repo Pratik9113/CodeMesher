@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import HomeSection from "./HomeSection";
 import PlaygroundPanel from "./PlaygroundPanel";
 import RepoVision from "./repo-vision/RepoVisionPage";
+import ThreeDGraph from "./repo-vision/ThreeDGraphPage";
 import Display from "./Display";
 import MermaidDiagramRepository from "./components/MermaidDiagramRepository";
 import CodeWiki from "./codewiki/CodeWiki";
@@ -22,6 +23,7 @@ function AppRoutes() {
       <Route path="/" element={<HomeSection />} />
       <Route path="/playground" element={<PlaygroundPanel />} />
       <Route path="/playground/repovision" element={<RepoVision />} />
+      <Route path="/playground/3dgraph" element={<ThreeDGraph />} />
       <Route path="/playground/codeanalysis" element={<Display />} />
       <Route path="/playground/codewiki" element={<CodeWiki />} />
       <Route

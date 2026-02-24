@@ -3,10 +3,10 @@ import CodeEditor from './components/CodeEditor'
 import AIAssistant from './components/ChatSections'
 import DisplaySidebar from './components/display/DisplaySidebar'
 import ResizeDivider from './components/ui/ResizeDivider'
+// import VSCodeTerminal from './components/terminal/VSCodeTerminal'
 import type { TreeNode } from './types/display'
 import { octokit, fetchRepoContent } from './utils/github'
 import Navbar from './components/layout/Navbar'
-
 function Display() {
   const [repoInput, setRepoInput] = useState('Pratik9113/government_scheme')
   const [code, setCode] = useState<string>(
@@ -28,8 +28,10 @@ function Display() {
   // Resize states
   const [sidebarWidth, setSidebarWidth] = useState(250)
   const [aiWidth, setAIWidth] = useState(400)
+  const [terminalHeight, setTerminalHeight] = useState(250)
   const isResizingSidebar = useRef(false)
   const isResizingAI = useRef(false)
+  const isResizingTerminal = useRef(false)
 
   // ---------------- Folder Logic ----------------
   const toggleNode = async (node: TreeNode) => {
@@ -84,7 +86,6 @@ function Display() {
   const handleLocalFolderUpload = async (files: FileList) => {
     if (files.length === 0) return;
     setIsUploadingLocal(true);
-    console.log("Starting local folder processing for", files.length, "files");
 
     const fileMap: Record<string, string> = {};
     const tree: TreeNode[] = [];
@@ -114,11 +115,10 @@ function Display() {
     };
 
     const filePromises = Array.from(files).map(file => {
-      // Skip likely binaries and very large files
       const isLikelyBinary = /\.(jpg|jpeg|png|gif|zip|exe|pdf|node|dll|so|dylib|bin|tar|gz|7z|woff|woff2|ttf|eot|ico)$/i.test(file.name);
 
       return new Promise<void>((resolve) => {
-        if (isLikelyBinary || file.size > 2 * 1024 * 1024) { // 2MB limit for local files
+        if (isLikelyBinary || file.size > 2 * 1024 * 1024) {
           addToTree(file.webkitRelativePath.split('/'), false, file.webkitRelativePath);
           resolve();
           return;
@@ -133,7 +133,6 @@ function Display() {
           resolve();
         };
         reader.onerror = () => {
-          console.error("Error reading file:", file.name);
           resolve();
         };
         reader.readAsText(file);
@@ -142,58 +141,54 @@ function Display() {
 
     try {
       await Promise.all(filePromises);
-
       const rootFolderName = files[0]?.webkitRelativePath.split('/')[0] || "Local Project";
-
       if (tree.length === 1 && tree[0].name === rootFolderName && tree[0].isDir) {
         setRoot({ path: rootFolderName, children: tree[0].children || [], isLocal: true });
       } else {
         setRoot({ path: rootFolderName, children: tree, isLocal: true });
       }
-
       setLocalFiles(fileMap);
       setActiveFile(undefined);
     } catch (err) {
       console.error("Local upload failed:", err);
-      alert("Failed to process local folder.");
     } finally {
       setIsUploadingLocal(false);
-      console.log("Finished uploading local folder.");
     }
   };
 
   // ---------------- Resize Handlers ----------------
   const handleMouseMove = (e: MouseEvent) => {
     if (isResizingSidebar.current) {
-      let newWidth = e.clientX
-      if (newWidth < 180) newWidth = 180
-      if (newWidth > 450) newWidth = 450
-      setSidebarWidth(newWidth)
+      const newWidth = Math.max(180, Math.min(450, e.clientX));
+      setSidebarWidth(newWidth);
     }
     if (isResizingAI.current) {
-      const newWidth = window.innerWidth - e.clientX
-      if (newWidth < 300) setAIWidth(300)
-      else if (newWidth > 800) setAIWidth(800)
-      else setAIWidth(newWidth)
+      const newWidth = Math.max(300, Math.min(800, window.innerWidth - e.clientX));
+      setAIWidth(newWidth);
+    }
+    if (isResizingTerminal.current) {
+      const newHeight = Math.max(100, Math.min(600, window.innerHeight - e.clientY));
+      setTerminalHeight(newHeight);
     }
   }
 
   const handleMouseUp = () => {
-    isResizingSidebar.current = false
-    isResizingAI.current = false
+    isResizingSidebar.current = false;
+    isResizingAI.current = false;
+    isResizingTerminal.current = false;
   }
 
   useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove)
-    window.addEventListener('mouseup', handleMouseUp)
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
     }
-  }, [])
+  }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-[#0d1117]">
+    <div className="flex flex-col h-screen bg-[#0d1117] overflow-hidden">
       <Navbar />
       <div className="flex flex-1 overflow-hidden text-gray-300 font-sans selection:bg-blue-500/30">
         <DisplaySidebar
@@ -214,10 +209,11 @@ function Display() {
         <ResizeDivider
           onMouseDown={() => { isResizingSidebar.current = true }}
           orientation="vertical"
+          isResizing={isResizingSidebar.current}
         />
 
-        <main className="flex-1 flex flex-col min-w-0 bg-gray-900 shadow-2xl relative z-10">
-          <div className="flex-1 p-4 overflow-hidden relative">
+        <main className="flex-1 flex flex-col min-w-0 bg-gray-900 shadow-2xl relative z-10 overflow-hidden">
+          <div className="flex-1 p-4 overflow-hidden relative min-h-0">
             {isUploadingLocal && (
               <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex flex-col items-center justify-center space-y-4">
                 <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -231,11 +227,22 @@ function Display() {
               onClose={() => setActiveFile(undefined)}
             />
           </div>
+
+          <ResizeDivider
+            onMouseDown={() => { isResizingTerminal.current = true }}
+            orientation="horizontal"
+            isResizing={isResizingTerminal.current}
+          />
+
+          {/* <div style={{ height: terminalHeight }} className="flex-shrink-0">
+            <VSCodeTerminal />
+          </div> */}
         </main>
 
         <ResizeDivider
           onMouseDown={() => { isResizingAI.current = true }}
           orientation="vertical"
+          isResizing={isResizingAI.current}
         />
 
         <aside style={{ width: aiWidth }} className="flex flex-col bg-[#161b22] border-l border-gray-700 h-full overflow-hidden">
