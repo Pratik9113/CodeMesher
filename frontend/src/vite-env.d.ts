@@ -29,10 +29,16 @@ declare global {
         explanation: string;
         insights: string;
       } | { error: string }>;
+
+      // Terminal
+      termStart: (opts: { id: string; command: string; args?: string[]; cwd?: string; env?: any; name?: string }) => Promise<{ ok: true } | { error: string }>;
+      termWrite: (id: string, data: string) => Promise<{ ok: true } | { error: string }>;
+      termStop: (id: string) => Promise<{ ok: true } | { error: string }>;
+      onTermOutput: (cb: (payload: { id: string; stream: 'stdout' | 'stderr'; data: string; ts: string }) => void) => () => void;
+      onTermExit: (cb: (payload: { id: string; code: number; ts: string }) => void) => () => void;
+      onTermError: (cb: (payload: { id: string; error: string; ts: string }) => void) => () => void;
     };
   }
 }
 
-export {};
-
-
+export { };

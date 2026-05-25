@@ -81,6 +81,42 @@ export interface FileTreeNode {
     isText?: boolean;
 }
 
+export interface GraphNode {
+    id: string;
+    name: string;
+    layer: string;
+    group: number;
+    val: number;
+    inDegree: number;
+    outDegree: number;
+}
+
+export interface GraphLink {
+    source: string;
+    target: string;
+    type: string;
+    width: number;
+}
+
+export interface GraphInsights {
+    entryPoints: string[];
+    circularDependencies: string[][];
+    unusedFiles: string[];
+    coreFiles: string[];
+    mostReferenced: string[];
+    highestWeightFile: string | null;
+    architectureImprovementSuggestions: string[];
+    dataFlowExplanation: string;
+}
+
+export interface ThreeDGraph {
+    graph: {
+        nodes: GraphNode[];
+        links: GraphLink[];
+    };
+    insights: GraphInsights;
+}
+
 export interface RepoData {
     repoMeta: RepoMeta;
     stats: Stats;
@@ -97,6 +133,7 @@ export interface RepoData {
     aiAnalysisSource?: string;
     moduleDependencyDiagram?: string;
     directoryTreeDiagram?: string;
+    threeDGraph?: ThreeDGraph;
 }
 
 export interface Tab {

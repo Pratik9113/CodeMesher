@@ -11,6 +11,7 @@ import {
   generateDirectoryTreeDiagram,
   analyzeFileWithAI
 } from "../utils/generateFunction.js";
+import { generate3DGraphData } from "../utils/threeDGraphBuilder.js";
 import express from "express";
 
 const AnalyzeRouter = express.Router();
@@ -186,6 +187,9 @@ AnalyzeRouter.post("/", async (req, res) => {
     const moduleDependencyDiagram = generateModuleDependencyDiagram(files, allAnalysis);
     const directoryTreeDiagram = generateDirectoryTreeDiagram(files);
 
+    // Generate 3D graph data
+    const threeDGraph = generate3DGraphData(files, allAnalysis);
+
     // Generate markdown digest
     const markdownDigest = generateMarkdownDigest(files, allAnalysis, repoInfo);
 
@@ -257,6 +261,7 @@ AnalyzeRouter.post("/", async (req, res) => {
       mermaidDiagram,
       moduleDependencyDiagram,
       directoryTreeDiagram,
+      threeDGraph,
       markdownDigest,
       aiAnalysis: aiAnalysis.analysis,
       aiAnalysisSource: aiAnalysis.source

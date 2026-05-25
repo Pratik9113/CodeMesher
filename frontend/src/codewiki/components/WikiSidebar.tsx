@@ -76,7 +76,7 @@ const WikiSidebar: React.FC<WikiSidebarProps> = ({
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
                         <Book className="w-5 h-5 text-white" />
                     </div>
-                    <h1 className="text-xl font-bold tracking-tight">Code Wiki</h1>
+                    <h1 className="text-xl font-bold tracking-tight">Repo Wiki</h1>
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar">

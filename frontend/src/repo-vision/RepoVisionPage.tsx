@@ -1,5 +1,5 @@
 import React from "react";
-import Header from "./components/Header";
+import Navbar from "../components/layout/Navbar";
 import Footer from "./components/Footer";
 import ThreeBackground from "../components/layout/ThreeBackground";
 import InputSection from "./components/InputSection";
@@ -53,7 +53,7 @@ export default function RepoVisionPage() {
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
-        <Header />
+        <Navbar />
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
           <InputSection

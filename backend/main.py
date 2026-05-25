@@ -469,13 +469,13 @@ def share_wiki():
         msg = MIMEMultipart()
         msg['From'] = f"CodeMesher Wiki <{sender_email}>"
         msg['To'] = target_email
-        msg['Subject'] = f"Code Wiki: {repo_url.split('/')[-1]}"
+        msg['Subject'] = f"Repo Wiki: {repo_url.split('/')[-1]}"
         
         # Build HTML content
         html_content = f"""
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; color: #333;">
             <h1 style="color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
-                Code Wiki: {repo_url}
+                Repo Wiki: {repo_url}
             </h1>
             <p style="color: #666; font-size: 0.9em;">Generated on: {meta.get('generated_at', 'N/A')}</p>
         """
@@ -1037,3 +1037,4 @@ def edit():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
+    

@@ -430,6 +430,7 @@ const RepoTabs: FC<RepoTabsProps> = ({
             title="Module Dependency Graph"
           />
         )}
+
         {activeTab === "directories" && (
           <MermaidDiagram
             diagram={data.directoryTreeDiagram ?? ""}
