@@ -129,7 +129,7 @@ const CodeWiki = () => {
                                     name="repoUrl"
                                     type="url"
                                     required
-                                    value={"https://github.com/Pranavlovescode/CrashGPT.git"}
+                                    defaultValue="https://github.com/Pranavlovescode/CrashGPT.git"
                                     placeholder="https://github.com/username/repo"
                                     className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 pl-10 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                                 />
