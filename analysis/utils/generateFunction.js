@@ -357,7 +357,11 @@ const generateModuleDependencyDiagram = (files, allAnalysis) => {
     `  classDef file fill:#0ea5e9,stroke:#0c4a6e,stroke-width:2px,color:#001219;\n`;
 
   const idFor = (p) => safeId(`file_${p}`);
-  const labelFor = (p) => p.replace(/"/g, "'");
+  const labelFor = (p) => {
+    // Show only filename
+    const filename = p.split('/').pop() || p;
+    return filename.replace(/"/g, "'");
+  };
 
   // Declare nodes
   const declared = new Set();

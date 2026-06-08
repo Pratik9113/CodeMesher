@@ -8,6 +8,13 @@ import { AIAnalysis } from '../../components/AIAnalysis';
 import { Badge } from './Badge';
 import MermaidDiagramRepository from "../../components/MermaidDiagramRepository";
 
+// Helper to show only filename
+const getFilename = (fullPath) => {
+  if (!fullPath) return fullPath;
+  const parts = fullPath.split('/');
+  return parts[parts.length - 1] || fullPath;
+};
+
 // Helper component for expandable function items
 const FunctionItem = ({ func }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -56,6 +63,7 @@ const FunctionItem = ({ func }) => {
 
 const FunctionFileGroup = ({ filename, functions }) => {
     const [isOpen, setIsOpen] = useState(true);
+    const displayName = getFilename(filename);
 
     return (
         <div className="border border-white/10 rounded-lg overflow-hidden mb-3">
@@ -65,7 +73,7 @@ const FunctionFileGroup = ({ filename, functions }) => {
             >
                 <div className="flex items-center gap-2 text-slate-200">
                     <FileCode size={18} className="text-indigo-400" />
-                    <span className="font-medium font-mono text-sm">{filename}</span>
+                    <span className="font-medium font-mono text-sm" title={filename}>{displayName}</span>
                     <span className="text-xs text-slate-500 ml-2">({functions.length})</span>
                 </div>
                 <ChevronDown size={16} className={`text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -98,6 +106,7 @@ const EndpointItem = ({ endpoint }) => {
 
 const EndpointFileGroup = ({ filename, endpoints }) => {
     const [isOpen, setIsOpen] = useState(true);
+    const displayName = getFilename(filename);
 
     return (
         <div className="border border-white/10 rounded-lg overflow-hidden mb-3">
@@ -107,7 +116,7 @@ const EndpointFileGroup = ({ filename, endpoints }) => {
             >
                 <div className="flex items-center gap-2 text-slate-200">
                     <FileCode size={18} className="text-indigo-400" />
-                    <span className="font-medium font-mono text-sm">{filename}</span>
+                    <span className="font-medium font-mono text-sm" title={filename}>{displayName}</span>
                     <span className="text-xs text-slate-500 ml-2">({endpoints.length})</span>
                 </div>
                 <ChevronDown size={16} className={`text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -143,6 +152,7 @@ const DatabaseItem = ({ db }) => {
 
 const DatabaseFileGroup = ({ filename, databases }) => {
     const [isOpen, setIsOpen] = useState(true);
+    const displayName = getFilename(filename);
 
     return (
         <div className="border border-white/10 rounded-lg overflow-hidden mb-3">
@@ -152,7 +162,7 @@ const DatabaseFileGroup = ({ filename, databases }) => {
             >
                 <div className="flex items-center gap-2 text-slate-200">
                     <FileCode size={18} className="text-indigo-400" />
-                    <span className="font-medium font-mono text-sm">{filename}</span>
+                    <span className="font-medium font-mono text-sm" title={filename}>{displayName}</span>
                     <span className="text-xs text-slate-500 ml-2">({databases.length})</span>
                 </div>
                 <ChevronDown size={16} className={`text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />

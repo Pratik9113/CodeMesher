@@ -12,6 +12,8 @@ import {
   analyzeFileWithAI
 } from "../utils/generateFunction.js";
 import { generate3DGraphData } from "../utils/threeDGraphBuilder.js";
+import { calculateLOC, calculateProjectLOC } from "../utils/locCalculator.js";
+import { PerformanceBenchmark } from "../utils/performanceBenchmark.js";
 import express from "express";
 
 const AnalyzeRouter = express.Router();
@@ -33,6 +35,10 @@ const limitConcurrency = async (tasks, limit) => {
 
 AnalyzeRouter.post("/", async (req, res) => {
   try {
+    // Initialize performance benchmark
+    const benchmark = new PerformanceBenchmark();
+    benchmark.start('total_analysis');
+
     const { repoUrl, useDeepAI = false } = req.body;
 
     if (!repoUrl) {
@@ -196,6 +202,10 @@ AnalyzeRouter.post("/", async (req, res) => {
     // Generate AI analysis
     const aiAnalysis = await generateAIAnalysis(allAnalysis, repoInfo, files);
 
+    // Calculate Lines of Code (LOC)
+    const locStats = calculateProjectLOC(fileContents);
+    console.log(`📊 LOC Calculation: ${locStats.total.codeLines} lines of code, ${locStats.total.commentLines} comment lines, ${locStats.total.blankLines} blank lines`);
+
     // Prepare comprehensive response
     const response = {
       repoMeta: {
@@ -233,7 +243,8 @@ AnalyzeRouter.post("/", async (req, res) => {
         databases: (allAnalysis.databases || []).length,
         models: (allAnalysis.models || []).length,
         controllers: (allAnalysis.controllers || []).length,
-        decorators: (allAnalysis.decorators || []).length
+        decorators: (allAnalysis.decorators || []).length,
+        loc: locStats
       },
       files: files.map(f => ({
         path: f.path,
@@ -267,7 +278,28 @@ AnalyzeRouter.post("/", async (req, res) => {
       aiAnalysisSource: aiAnalysis.source
     };
 
+    // End benchmark
+    const benchmarkResult = benchmark.end();
+    
+    // Calculate speedup: estimate sequential time based on file downloads
+    // Assumption: ~0.5s per file download in sequential mode
+    const estimatedSequentialTimeMs = fileContents.length * 500; // 0.5s per file
+    const speedupFactor = (estimatedSequentialTimeMs / benchmarkResult.duration).toFixed(2);
+    
+    response.performance = {
+      totalDurationMs: benchmarkResult.duration,
+      totalDurationSeconds: (benchmarkResult.duration / 1000).toFixed(2),
+      memoryUsedMB: benchmarkResult.memoryUsed.toFixed(2),
+      filesProcessed: fileContents.length,
+      filesPerSecond: (fileContents.length / (benchmarkResult.duration / 1000)).toFixed(2),
+      estimatedSequentialTimeSeconds: (estimatedSequentialTimeMs / 1000).toFixed(2),
+      speedupFactor: speedupFactor + '×',
+      timestamp: benchmarkResult.timestamp
+    };
+
     console.log(`✅ Analysis complete for ${owner}/${repo}`);
+    console.log(`⏱️  Total time: ${benchmarkResult.duration}ms (${(benchmarkResult.duration / 1000).toFixed(2)}s)`);
+    console.log(`⚡ Speedup: ${speedupFactor}× (estimated sequential: ${(estimatedSequentialTimeMs / 1000).toFixed(2)}s)`);
     res.json(response);
 
   } catch (error) {

@@ -64,7 +64,7 @@ const RepoStats = ({ data }) => {
                 </div>
 
                 {/* Stats grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                     <Stat label="Files" value={data.stats.files} icon="📄" />
                     <Stat label="Functions" value={data.stats.functions} icon="⚙️" />
                     <Stat label="Classes" value={data.stats.classes} icon="🏗️" />
@@ -72,7 +72,82 @@ const RepoStats = ({ data }) => {
                     <Stat label="Endpoints" value={data.stats.apis} icon="🔗" />
                     <Stat label="Models" value={data.stats.models} icon="🗄️" />
                     <Stat label="Databases" value={data.stats.databases} icon="💾" />
+                    <Stat 
+                        label="Lines of Code" 
+                        value={data.stats.loc?.total?.codeLines?.toLocaleString() || 0} 
+                        icon="📝" 
+                    />
                 </div>
+
+                {/* LOC Details */}
+                {data.stats.loc && (
+                    <div className="mt-6 p-4 bg-white/5 rounded-xl border border-white/10">
+                        <h3 className="text-sm font-semibold text-slate-300 mb-3">Code Statistics</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                            <div>
+                                <span className="text-slate-400">Total Lines:</span>
+                                <p className="text-white font-bold">{data.stats.loc.total.lines?.toLocaleString() || 0}</p>
+                            </div>
+                            <div>
+                                <span className="text-slate-400">Code Lines:</span>
+                                <p className="text-green-400 font-bold">{data.stats.loc.total.codeLines?.toLocaleString() || 0}</p>
+                            </div>
+                            <div>
+                                <span className="text-slate-400">Comment Lines:</span>
+                                <p className="text-blue-400 font-bold">{data.stats.loc.total.commentLines?.toLocaleString() || 0}</p>
+                            </div>
+                            <div>
+                                <span className="text-slate-400">Blank Lines:</span>
+                                <p className="text-slate-400 font-bold">{data.stats.loc.total.blankLines?.toLocaleString() || 0}</p>
+                            </div>
+                        </div>
+
+                        {/* LOC by Language */}
+                        {data.stats.loc.byLanguage && Object.keys(data.stats.loc.byLanguage).length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-white/10">
+                                <h4 className="text-xs font-semibold text-slate-300 mb-2">By Language</h4>
+                                <div className="space-y-1">
+                                    {Object.entries(data.stats.loc.byLanguage).map(([lang, stats]) => (
+                                        <div key={lang} className="flex justify-between text-xs">
+                                            <span className="text-slate-400">{lang}:</span>
+                                            <span className="text-slate-300">
+                                                {stats.codeLines?.toLocaleString() || 0} lines ({stats.fileCount} {stats.fileCount === 1 ? 'file' : 'files'})
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Performance Metrics */}
+                {data.performance && (
+                    <div className="mt-6 p-4 bg-gradient-to-r from-orange-500/10 to-yellow-500/10 rounded-xl border border-orange-500/20">
+                        <h3 className="text-sm font-semibold text-orange-300 mb-3">⚡ Performance Metrics</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                            <div>
+                                <span className="text-slate-400">Analysis Time:</span>
+                                <p className="text-white font-bold">{data.performance.totalDurationSeconds}s</p>
+                            </div>
+                            <div>
+                                <span className="text-slate-400">Files/Second:</span>
+                                <p className="text-yellow-400 font-bold">{data.performance.filesPerSecond}</p>
+                            </div>
+                            <div>
+                                <span className="text-slate-400">Speedup Factor:</span>
+                                <p className="text-orange-400 font-bold text-lg">{data.performance.speedupFactor}</p>
+                            </div>
+                            <div>
+                                <span className="text-slate-400">Est. Sequential:</span>
+                                <p className="text-slate-300">{data.performance.estimatedSequentialTimeSeconds}s</p>
+                            </div>
+                        </div>
+                        <p className="text-xs text-orange-300/70 mt-3">
+                            🚀 Your parallel analysis is <strong>{data.performance.speedupFactor}</strong> faster than sequential processing
+                        </p>
+                    </div>
+                )}
 
                 {/* File counts by language */}
                 {data.repoMeta.fileCountsByLanguage && (
